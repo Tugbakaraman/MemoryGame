@@ -6,12 +6,14 @@ package MemoryGame;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
-import javax.swing.JButton;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Toolkit;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.*;
+import javax.swing.*;
 
 /**
  *
@@ -26,7 +28,7 @@ public class MemoryGame extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         randomCard();
-        game();
+
     }
     // zamanı tuttuğumuzda new game dendiğinde eski zamanı ve skoru tutan bir panel olsun
     //16 tane kart var ve bunları rastgele atayacağız
@@ -37,11 +39,10 @@ public class MemoryGame extends javax.swing.JDialog {
     String[] character = {"*", "+", "$", "&", "#", "1", "2", "3", "*", "+", "$", "&", "#", "1", "2", "3"};
     private JButton btnOne;
     private JButton btnTwo;
-    private JButton btnTree;
     private String btnText1;
     private String btnText2;
-    private String btnText3;
     private int selectionCount = 0;
+    protected int moves = 0;
 
     public void randomCard() {
         Random rn = new Random();
@@ -60,14 +61,10 @@ public class MemoryGame extends javax.swing.JDialog {
             }
             j++;
         }
-        for (Component c : pnl_buttons.getComponents()) {
-            JButton btns = (JButton) c;
-            //System.out.println(btns.getName());
-
-        }
     }
 
     public void btnSelect(JButton btn) {
+        Timer task = new Timer();
         //btn numarasını al
         String num = btn.getName();
         int j = 0;
@@ -78,6 +75,7 @@ public class MemoryGame extends javax.swing.JDialog {
             j++;
         }
         if (selectionCount == 0) {
+            moves++;
             btnText1 = btn.getText();
             btn.setEnabled(false);
             btn.setBackground(Color.RED);
@@ -91,28 +89,87 @@ public class MemoryGame extends javax.swing.JDialog {
             if (btnText1.equals(btnText2)) {
                 btnOne.setBackground(Color.GREEN);
                 btnTwo.setBackground(Color.GREEN);
+            } else {
+                task.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        btnOne.setEnabled(true);
+                        btnTwo.setEnabled(true);
+                        btnOne.setBackground(Color.getHSBColor(0, 102, 0));
+                        btnTwo.setBackground(Color.getHSBColor(0, 102, 0));
+                        btnOne.setText("?");
+                        btnTwo.setText("?");
+                    }
+                }, 500);
             }
-            if (!btnText1.contains(btn.getText()) && !btnText2.contains(btn.getText())) {
-                if (!btnText1.equals(btnText2)) {
-                    btnOne.setEnabled(true);
-                    btnTwo.setEnabled(true);
-                    btnOne.setBackground(Color.getHSBColor(0, 102, 0));
-                    btnTwo.setBackground(Color.getHSBColor(0, 102, 0));
-                    btnOne.setText("?");
-                    btnTwo.setText("?");
-                    selectionCount = 0;
-                }
+            selectionCount = 0;
+        }
+        lbl_moves.setText(String.valueOf(moves));
+        int skor = 0;
+        for (Component c : pnl_buttons.getComponents()) {
+            JButton btnes = (JButton) c;
+            //oyuncu skoru
+            System.out.println(skor);
+            System.out.println(btn.getBackground().equals(Color.GREEN));
+            if (btnes.getBackground().equals(Color.GREEN)) {
+                skor++;
             }
+        }
+        if (moves == 12 || skor == 15) {
+            GameOver infoForm = new GameOver();
         }
 
     }
-//secim yaptıgında ilki yesil yanacak ikinci secimdeki  butonla aynıysa kırmızı değilse eski haline dönecek soru isaretli
+//oyuncunun kac hamle yapacaının sınırı konulabilir
 
-    public void game() {
-        ArrayList<JButton> ikili = new ArrayList<>();
-
-    }
-
+//    public void gameOver() {
+//        //panel yapımı
+//        JFrame frame = new JFrame();
+//        JLabel lblTitle = new JLabel();
+//        JLabel lblMoves = new JLabel();
+//        JLabel lblTime = new JLabel();
+//        JButton btnPlayAgain = new JButton();
+//
+//        lblTitle.setText("CONGRa");
+//        lblTitle.setBounds(80, 20, 200, 50);
+//        lblTitle.setFont(new Font("Verdana", Font.PLAIN, 20));
+//        lblTitle.setBorder(BorderFactory.createBevelBorder(1));
+//        lblTitle.setOpaque(true);
+//        lblTitle.setHorizontalAlignment(JTextField.CENTER);
+//
+//        lblMoves.setText("Moves : " + moves);
+//
+//        lblTime.setText("Time : ");
+//
+//        btnPlayAgain.setText("Play Again");
+//        btnPlayAgain.setBounds(80, 50, 80, 30);
+//
+//        frame.setSize(320, 320);
+//        frame.setLayout(null);
+//        frame.setVisible(true);
+//
+//        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+//        int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
+//        int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
+//
+//        int skor = 0;
+//        for (Component c : pnl_buttons.getComponents()) {
+//            JButton btn = new JButton();
+//            //oyuncu skoru
+//            if (btn.getBackground().equals(Color.GREEN)) {
+//                skor++;
+//            }
+//        }
+//        if (moves == 12 || skor / 2 == 0 && skor != 0) {
+//            frame.add(lblTitle);
+//            frame.add(lblMoves);
+//            frame.add(lblTime);
+//            frame.add(btnPlayAgain);
+//            frame.setLocation(x, y);
+//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//        }
+//
+//    }
     //instanceof bir nesnenin türünü dinamik olarak sorgulamak ve buna göre farklı işlemler yapmak için temel bir araçtır.
     public void reset() {
         randomCard();
@@ -479,32 +536,26 @@ public class MemoryGame extends javax.swing.JDialog {
 
     private void btn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn1ActionPerformed
         btnSelect(btn1);
-        game();
     }//GEN-LAST:event_btn1ActionPerformed
 
     private void btn2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn2ActionPerformed
         btnSelect(btn2);
-        game();
     }//GEN-LAST:event_btn2ActionPerformed
 
     private void btn3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn3ActionPerformed
         btnSelect(btn3);
-        game();
     }//GEN-LAST:event_btn3ActionPerformed
 
     private void btn4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn4ActionPerformed
         btnSelect(btn4);
-        game();
     }//GEN-LAST:event_btn4ActionPerformed
 
     private void btn5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn5ActionPerformed
         btnSelect(btn5);
-        game();
     }//GEN-LAST:event_btn5ActionPerformed
 
     private void btn6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn6ActionPerformed
         btnSelect(btn6);
-        game();
     }//GEN-LAST:event_btn6ActionPerformed
 
     private void btn7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn7ActionPerformed
@@ -551,11 +602,12 @@ public class MemoryGame extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        Stopwatch stopwatch=new Stopwatch();
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 MemoryGame dialog = new MemoryGame(new javax.swing.JFrame(), true);
+                dialog.setLocationRelativeTo(null);
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {
                         System.exit(0);
