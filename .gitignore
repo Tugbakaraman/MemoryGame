@@ -1,0 +1,29 @@
+# NetBeans specific files
+nbproject/private/
+build/
+dist/
+nbbuild/
+.nbattrs
+nb-private/
+nb-sync.properties
+nb-configuration.xml
+
+# Java specific files
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.log
+*.lock
+.idea/             # IntelliJ IDEA specific files (if you ever use it)
+.vscode/           # VS Code specific files (if you ever use it)
+target/            # Maven build directory
+out/               # IntelliJ IDEA output directory
+bin/               # Eclipse output directory
+*.iml              # IntelliJ IDEA module files
+
+# Operating System files
+.DS_Store
+Thumbs.db
