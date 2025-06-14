@@ -1,48 +1,51 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JDialog.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package MemoryGame;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
-import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.*;
 import javax.swing.*;
+import javax.swing.plaf.ColorUIResource;
 
 /**
  *
  * @author user
  */
-public class MemoryGame extends javax.swing.JDialog {
+public class MemoryGameFrm extends javax.swing.JFrame {
 
     /**
-     * Creates new form MemoryGame
+     * Creates new form deneme
      */
-    public MemoryGame(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
-        initComponents();
-        randomCard();
-
-    }
-    // zamanı tuttuğumuzda new game dendiğinde eski zamanı ve skoru tutan bir panel olsun
-    //16 tane kart var ve bunları rastgele atayacağız
-    //8 tane farklı kart olacak iki tanesi aynı
-    //bu kartlar random bir şekilde dağılacaklar 
-    //kart nesnesi oluşturulup bu kart nesnesi butonlara eklenebilir
+    Timer task = new Timer();
     ArrayList<Integer> sayi = new ArrayList<>();
     String[] character = {"*", "+", "$", "&", "#", "1", "2", "3", "*", "+", "$", "&", "#", "1", "2", "3"};
+    ArrayList<JButton> btncomplete = new ArrayList<>();
     private JButton btnOne;
     private JButton btnTwo;
     private String btnText1;
     private String btnText2;
     private int selectionCount = 0;
-    protected int moves = 0;
+    int moves = 0;
+    int time = 0;
+    int skor = 0;
+    String status;
+
+    public MemoryGameFrm() {
+        initComponents();
+        setLocationRelativeTo(null);
+        randomCard();
+        stopwatch();
+    }
 
     public void randomCard() {
         Random rn = new Random();
@@ -56,15 +59,16 @@ public class MemoryGame extends javax.swing.JDialog {
             if (c instanceof JButton) {
                 JButton btns = (JButton) c;
                 btns.setName(String.valueOf(sayi.get(j)));
-                btns.setBackground(Color.getHSBColor(0, 102, 0));
+                btns.setBackground(Color.BLUE);
                 btns.setForeground(Color.WHITE);
+
             }
             j++;
         }
     }
 
     public void btnSelect(JButton btn) {
-        Timer task = new Timer();
+        Timer timertask = new Timer();
         //btn numarasını al
         String num = btn.getName();
         int j = 0;
@@ -77,112 +81,125 @@ public class MemoryGame extends javax.swing.JDialog {
         if (selectionCount == 0) {
             moves++;
             btnText1 = btn.getText();
-            btn.setEnabled(false);
             btn.setBackground(Color.RED);
+            btn.setEnabled(false);
             btnOne = btn;
             selectionCount++;
         } else if (selectionCount == 1) {
             btnText2 = btn.getText();
-            btn.setEnabled(false);
             btn.setBackground(Color.RED);
+            btn.setEnabled(false);
             btnTwo = btn;
-            if (btnText1.equals(btnText2)) {
-                btnOne.setBackground(Color.GREEN);
-                btnTwo.setBackground(Color.GREEN);
-            } else {
-                task.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
+            timertask.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    if (btnText1.equals(btnText2)) {
+                        btncomplete.add(btnOne);
+                        btncomplete.add(btnTwo);
+                        btnOne.setContentAreaFilled(false);
+                        btnOne.setText(" ");
+                        btnTwo.setContentAreaFilled(false);
+                        btnTwo.setText(" ");
+                    } else {
                         btnOne.setEnabled(true);
                         btnTwo.setEnabled(true);
-                        btnOne.setBackground(Color.getHSBColor(0, 102, 0));
-                        btnTwo.setBackground(Color.getHSBColor(0, 102, 0));
+                        btnOne.setBackground(Color.BLUE);
+                        btnTwo.setBackground(Color.BLUE);
                         btnOne.setText("?");
                         btnTwo.setText("?");
                     }
-                }, 500);
-            }
+                }
+            }, 500);
             selectionCount = 0;
         }
         lbl_moves.setText(String.valueOf(moves));
-        int skor = 0;
-        for (Component c : pnl_buttons.getComponents()) {
-            JButton btnes = (JButton) c;
-            //oyuncu skoru
-            System.out.println(skor);
-            System.out.println(btn.getBackground().equals(Color.GREEN));
-            if (btnes.getBackground().equals(Color.GREEN)) {
-                skor++;
+        win();
+    }
+
+    public String win() {
+        System.out.println(btncomplete.size());
+        if (btncomplete.size() == 15) {
+            task.cancel();
+            status = "Congratulations";
+            gameOver();
+        }
+        if (moves == 20) {
+            task.cancel();
+            status = "Lost";
+            gameOver();
+        }
+        return status;
+    }
+
+    public void stopwatch() {
+        task.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                lbl_time.setText(String.valueOf(time));
+                time++;
             }
-        }
-        if (moves == 12 || skor == 15) {
-            GameOver infoForm = new GameOver();
-        }
+        }, 0, 1000);
 
     }
-//oyuncunun kac hamle yapacaının sınırı konulabilir
 
-//    public void gameOver() {
-//        //panel yapımı
-//        JFrame frame = new JFrame();
-//        JLabel lblTitle = new JLabel();
-//        JLabel lblMoves = new JLabel();
-//        JLabel lblTime = new JLabel();
-//        JButton btnPlayAgain = new JButton();
-//
-//        lblTitle.setText("CONGRa");
-//        lblTitle.setBounds(80, 20, 200, 50);
-//        lblTitle.setFont(new Font("Verdana", Font.PLAIN, 20));
-//        lblTitle.setBorder(BorderFactory.createBevelBorder(1));
-//        lblTitle.setOpaque(true);
-//        lblTitle.setHorizontalAlignment(JTextField.CENTER);
-//
-//        lblMoves.setText("Moves : " + moves);
-//
-//        lblTime.setText("Time : ");
-//
-//        btnPlayAgain.setText("Play Again");
-//        btnPlayAgain.setBounds(80, 50, 80, 30);
-//
-//        frame.setSize(320, 320);
-//        frame.setLayout(null);
-//        frame.setVisible(true);
-//
-//        Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-//        int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
-//        int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
-//
-//        int skor = 0;
-//        for (Component c : pnl_buttons.getComponents()) {
-//            JButton btn = new JButton();
-//            //oyuncu skoru
-//            if (btn.getBackground().equals(Color.GREEN)) {
-//                skor++;
-//            }
-//        }
-//        if (moves == 12 || skor / 2 == 0 && skor != 0) {
-//            frame.add(lblTitle);
-//            frame.add(lblMoves);
-//            frame.add(lblTime);
-//            frame.add(btnPlayAgain);
-//            frame.setLocation(x, y);
-//            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//        }
-//
-//    }
+    public void gameOver() {
+        JDialog frm = new JDialog(this, "Oyun Bitti!", true);
+        JLabel lbl_title = new JLabel();
+        JLabel lblm_text = new JLabel();
+        JLabel lblt_text = new JLabel();
+        JButton btn_playAgain = new JButton();
+
+        lbl_title.setText(status);
+        lbl_title.setBounds(50, 20, 200, 50);
+        lbl_title.setFont(new Font("Verdana", Font.PLAIN, 20));
+        //lbl_title.setBorder(BorderFactory.createBevelBorder(1));
+        lbl_title.setOpaque(true);
+        lbl_title.setHorizontalAlignment(JTextField.CENTER);
+
+        lblm_text.setText("Moves : " + moves);
+        lblm_text.setBounds(80, 80, 100, 20);
+
+        lblt_text.setText("Time : " + time);
+        lblt_text.setBounds(80, 120, 100, 20);
+
+        btn_playAgain.setText("Play Again");
+        btn_playAgain.setBounds(80, 200, 120, 40);
+        btn_playAgain.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                reset();
+                frm.dispose(); // Diyaloğu kapat
+            }
+        });
+        frm.add(lbl_title);
+        frm.add(lblm_text);
+        frm.add(lblt_text);
+        frm.add(btn_playAgain);
+        frm.setSize(320, 320);
+        frm.setLayout(null);
+        frm.setLocationRelativeTo(this);
+        frm.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        frm.setVisible(true);
+
+    }
+
     //instanceof bir nesnenin türünü dinamik olarak sorgulamak ve buna göre farklı işlemler yapmak için temel bir araçtır.
     public void reset() {
+        moves = 0;
+        time = 0;
         randomCard();
         for (Component c : pnl_buttons.getComponents()) {
             if (c instanceof JButton) { //elementin bir buton olup olmadığını kontrol ettik
                 JButton button = (JButton) c;
+                button.setEnabled(true);
+                button.setContentAreaFilled(true);
                 button.setText("?");
-                button.setBackground(Color.getHSBColor(0, 102, 0));
+                button.setBackground(Color.BLUE);
                 button.setForeground(Color.WHITE);
             }
         }
         lbl_moves.setText("0");
-        lbl_time.setText("0.0");
+        lbl_time.setText("0");
     }
 
     @SuppressWarnings("unchecked")
@@ -214,8 +231,7 @@ public class MemoryGame extends javax.swing.JDialog {
         btn15 = new javax.swing.JButton();
         btn16 = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setBackground(new java.awt.Color(255, 255, 255));
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jPanel3.setBackground(new java.awt.Color(0, 0, 102));
 
@@ -237,7 +253,7 @@ public class MemoryGame extends javax.swing.JDialog {
 
         lbl_time.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lbl_time.setForeground(new java.awt.Color(255, 255, 255));
-        lbl_time.setText("0.0");
+        lbl_time.setText("0");
 
         btn_newGame.setBackground(new java.awt.Color(0, 204, 0));
         btn_newGame.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -251,6 +267,7 @@ public class MemoryGame extends javax.swing.JDialog {
 
         pnl_buttons.setBackground(new java.awt.Color(0, 0, 51));
 
+        btn1.setBackground(new java.awt.Color(0, 102, 153));
         btn1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn1.setText("?");
         btn1.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -260,6 +277,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn2.setBackground(new java.awt.Color(0, 102, 153));
         btn2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn2.setText("?");
         btn2.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -269,6 +287,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn3.setBackground(new java.awt.Color(0, 102, 153));
         btn3.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn3.setText("?");
         btn3.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -278,6 +297,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn4.setBackground(new java.awt.Color(0, 102, 153));
         btn4.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn4.setText("?");
         btn4.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -287,6 +307,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn5.setBackground(new java.awt.Color(50, 54, 122));
         btn5.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn5.setText("?");
         btn5.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -296,6 +317,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn6.setBackground(new java.awt.Color(0, 102, 153));
         btn6.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn6.setText("?");
         btn6.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -305,6 +327,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn7.setBackground(new java.awt.Color(0, 102, 153));
         btn7.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn7.setText("?");
         btn7.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -314,6 +337,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn9.setBackground(new java.awt.Color(0, 102, 153));
         btn9.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn9.setText("?");
         btn9.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -323,6 +347,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn8.setBackground(new java.awt.Color(0, 102, 153));
         btn8.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn8.setText("?");
         btn8.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -332,6 +357,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn11.setBackground(new java.awt.Color(0, 102, 153));
         btn11.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn11.setText("?");
         btn11.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -341,6 +367,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn12.setBackground(new java.awt.Color(0, 102, 153));
         btn12.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn12.setText("?");
         btn12.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -350,6 +377,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn10.setBackground(new java.awt.Color(0, 102, 153));
         btn10.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn10.setText("?");
         btn10.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -359,6 +387,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn13.setBackground(new java.awt.Color(0, 102, 153));
         btn13.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn13.setText("?");
         btn13.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -368,6 +397,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn14.setBackground(new java.awt.Color(0, 102, 153));
         btn14.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn14.setText("?");
         btn14.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -377,6 +407,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn15.setBackground(new java.awt.Color(0, 102, 153));
         btn15.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn15.setText("?");
         btn15.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -386,6 +417,7 @@ public class MemoryGame extends javax.swing.JDialog {
             }
         });
 
+        btn16.setBackground(new java.awt.Color(0, 102, 153));
         btn16.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         btn16.setText("?");
         btn16.setPreferredSize(new java.awt.Dimension(80, 100));
@@ -438,7 +470,7 @@ public class MemoryGame extends javax.swing.JDialog {
                                     .addComponent(btn7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                     .addComponent(btn8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addContainerGap(44, Short.MAX_VALUE))))
+                        .addContainerGap(46, Short.MAX_VALUE))))
         );
         pnl_buttonsLayout.setVerticalGroup(
             pnl_buttonsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -562,17 +594,13 @@ public class MemoryGame extends javax.swing.JDialog {
         btnSelect(btn7);
     }//GEN-LAST:event_btn7ActionPerformed
 
-    private void btn8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn8ActionPerformed
-        btnSelect(btn8);
-    }//GEN-LAST:event_btn8ActionPerformed
-
     private void btn9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn9ActionPerformed
         btnSelect(btn9);
     }//GEN-LAST:event_btn9ActionPerformed
 
-    private void btn10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn10ActionPerformed
-        btnSelect(btn10);
-    }//GEN-LAST:event_btn10ActionPerformed
+    private void btn8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn8ActionPerformed
+        btnSelect(btn8);
+    }//GEN-LAST:event_btn8ActionPerformed
 
     private void btn11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn11ActionPerformed
         btnSelect(btn11);
@@ -581,6 +609,10 @@ public class MemoryGame extends javax.swing.JDialog {
     private void btn12ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn12ActionPerformed
         btnSelect(btn12);
     }//GEN-LAST:event_btn12ActionPerformed
+
+    private void btn10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn10ActionPerformed
+        btnSelect(btn10);
+    }//GEN-LAST:event_btn10ActionPerformed
 
     private void btn13ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btn13ActionPerformed
         btnSelect(btn13);
@@ -602,18 +634,36 @@ public class MemoryGame extends javax.swing.JDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                MemoryGame dialog = new MemoryGame(new javax.swing.JFrame(), true);
-                dialog.setLocationRelativeTo(null);
-                dialog.addWindowListener(new java.awt.event.WindowAdapter() {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(MemoryGameFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(MemoryGameFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(MemoryGameFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(MemoryGameFrm.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+        //</editor-fold>
 
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        System.exit(0);
-                    }
-                });
-                dialog.setVisible(true);
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+
+            public void run() {
+                new MemoryGameFrm().setVisible(true);
+
             }
         });
     }
